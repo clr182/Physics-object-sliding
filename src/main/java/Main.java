@@ -3,6 +3,9 @@ import java.util.Scanner;
 import java.util.Vector;
 
 public class Main {
+
+    public static final double GRAVITY = 9.81;
+
     public static void main(String[] args) {
 
         Scanner kb = new Scanner(System.in);
@@ -13,150 +16,115 @@ public class Main {
         double k = kb.nextInt();
 
 
-        double mg = 0.7;
-        double mk = 0.5;
+        //Test Values
+        double mStatic = 0.6;
+        double mKinetic = 0.5;
         double mass = 4;
+
+        Vectors normal = new Vectors(0, 3, 4);
+
+        Vectors normalHat = normal.hat();
 
         Vectors objectArr = new Vectors(i, j, k);
 
         //step 1
-        double FG =calcFG(mass);
+        Vectors forceGravity = calcForceGravity(mass);
 
         //step 2
-        Vectors FGN = calcFGN(FG, objectArr);
+        Vectors forceGravityNormal = calcForceGravityNormal(forceGravity, normalHat);
 
         //step 3
-        Vectors PGN = calcPGN(FG, FGN);
+        Vectors forceGravityPlane = calcForceGravityPlane(forceGravity, forceGravityNormal);
+
+        double forceGravityPlaneMag = forceGravityPlane.getMagnitude();
+
+        Vectors dHat = forceGravityPlane.hat();
 
         //step 4
-        double FN = calcFN(FGN);
+        Vectors forceNormal = calcForceNormal(forceGravityPlane);
+
+        double forceNormalMag = forceNormal.getMagnitude();
 
         //step 5
-        Vectors FF = calcFF(mg, mk, FN, PGN);
-
-        Vectors FGPBARR = calcFGPBARR(FG, FGN);
+        Vectors forceFriction = calcForceFriction(mStatic, mKinetic, forceNormalMag, forceGravityPlaneMag, dHat);
 
         //step 6
-        Vectors FNET = calcFNET(FF, FGPBARR);
+        Vectors forceNet = calcForceNet(forceFriction, forceGravityPlane, forceNormal);
 
         //step 7
-        Vectors A = calcACC(mass, FNET);
+        Vectors acelerationVectors = calcACC(mass, forceNet);
     }
 
 
-    public static double calcFG(double mass){
+    public static Vectors calcForceGravity(double mass) {
 
-        double gk[] = {0, 0, 1};
-        double fg = ((-1)*(mass))*((9.81)*(gk[2]));
+        Vectors kHat = new Vectors(0, 0, 1);
 
-        System.out.println("FG:");
-        System.out.println( " (" + gk[0] + "),\n ("+ gk[1] + "),\n(" + fg + ")");
-        System.out.println(" ");
-        return fg;
+        double massGravity = mass * GRAVITY;
+
+        return kHat.scalarMultiply(massGravity);
+
     }
 
-    public static Vectors calcFGN(double FG, Vectors objectArr){
-        double N = Math.sqrt(((objectArr.getI())*(objectArr.getI()))+
-                ((objectArr.getJ())*(objectArr.getJ())) +
-                ((objectArr.getK())*(objectArr.getK())));
+    public static Vectors calcForceGravityNormal(Vectors forceGravity, Vectors normalHat) {
 
-        System.out.println("N: \n" + N);
-        System.out.println(" ");
+        Vectors forceGravityNormal = null;
 
-        double NhI = ((1/N) * objectArr.getI());
-        double NhJ = ((1/N) * objectArr.getJ());
-        double NhK = ((1/N) * objectArr.getK());
+        double forceGravityDotNHat = forceGravity.dotProduct(normalHat);
 
-        Vectors NHat = new Vectors(NhI, NhJ, NhK);
-        System.out.println("NHAT: \n" +NHat);
-        System.out.println(" ");
+        return forceGravityNormal.scalarMultiply(forceGravityDotNHat);
 
-        double sum = 0 + 0 + (FG * NhK);
-        Vectors FGN = new Vectors(sum*NhI, sum*NhJ, sum*NhK);
-
-        System.out.println("FGN: \n" +FGN);
-        System.out.println(" ");
-        return FGN;
     }
 
-    public static Vectors calcFGPBARR(double fg, Vectors fgn){
-        Vectors fgpBAR = new Vectors(( 0 - fgn.getI()),( 0 -fgn.getJ()),(fg - fgn.getK()));
-        System.out.println("FGPBAR: \n" + fgpBAR);
+    public static Vectors calcForceGravityPlane(Vectors forceGravity, Vectors forceGravityNormal) {
+        Vectors forceGravityPlane = null;
 
-        return fgpBAR;
+        forceGravityPlane = forceGravity.subtraction(forceGravityNormal);
+
+        return forceGravityPlane;
+
     }
 
+    public static Vectors calcForceNormal(Vectors forceGravityPlane) {
+        Vectors forceNormal = null;
 
-    public static Vectors calcPGN(double fg, Vectors fgn){
-        Vectors fgpBAR = new Vectors(( 0 - fgn.getI()),( 0 -fgn.getJ()),(fg - fgn.getK()));
-        System.out.println("FGPBAR: \n" + fgpBAR);
+        forceNormal = forceGravityPlane.scalarMultiply(-1);
 
-        double fgp = Math.sqrt(fgpBAR.getI()*fgpBAR.getI() +
-                fgpBAR.getJ()*fgpBAR.getJ() +
-                fgpBAR.getK()*fgpBAR.getK());
-        System.out.println("fgp: \n" + fgp);
-        System.out.println(" ");
-
-
-        double DhI = ((1/fgp) * fgpBAR.getI());
-        double DhJ = ((1/fgp) * fgpBAR.getJ());
-        double DhK = ((1/fgp) * fgpBAR.getK());
-        Vectors dHat = new Vectors(DhI, DhJ, DhK);
-        System.out.println("dHat: \n" + dHat);
-        System.out.println(" ");
-        return dHat ;
+        return forceNormal;
     }
 
-    public static double calcFN(Vectors fgn){
-        double fnBARI = fgn.getI()*-1;
-        double fnBARJ = fgn.getJ()*-1;
-        double fnBARK = fgn.getK()*-1;
+    public static Vectors calcForceFriction(double mStatic, double mKinetic, double forceNormalMag, double forceGravityPlaneMag, Vectors DHat) {
 
-        double fn = Math.sqrt((fnBARI * fnBARI) + (fnBARJ * fnBARJ) + (fnBARK*fnBARK));
+        double forceFriction;
 
-        System.out.println("FN: \n" + fn);
-        System.out.println(" ");
-        return fn;
+        double forceFrictionStatic = mStatic * forceNormalMag;
+        double forceFrictionKinetic = mKinetic * forceNormalMag;
+
+        if (forceFrictionStatic < forceGravityPlaneMag) {
+            forceFriction = forceFrictionKinetic;
+        } else {
+            forceFriction = forceFrictionStatic;
+        }
+        Vectors negativeD = DHat.scalarMultiply(-1);
+
+        Vectors forceFrictionVector = negativeD.scalarMultiply(forceFriction);
+
+
+        return forceFrictionVector;
     }
 
-    public static Vectors calcFF(double MG, double MK, double FN, Vectors DHat){
-        double ff1 = MG * FN;
-        double ff2 = MK * FN;
+    public static Vectors calcForceNet(Vectors forceFriction, Vectors forceGravityPlane, Vectors forceNormal) {
+        Vectors forceNet = (forceFriction.addition(forceGravityPlane).addition(forceNormal));
 
-        System.out.println("ff1: " + ff1);
-        System.out.println("ff2: " + ff2);
-
-        System.out.println("dhat1: " + DHat.getI());
-        double ffBARI = ff2 * -DHat.getI();
-        double ffBARJ = ff2 * -DHat.getJ();
-        double ffBARK = ff2 * -DHat.getK();
-
-        Vectors ffBAR = new Vectors(ffBARI, ffBARJ, ffBARK);
-
-        System.out.println("ffBAR: \n" + ffBAR);
-        System.out.println(" ");
-        return ffBAR;
+        return forceNet;
     }
 
-    public static Vectors calcFNET(Vectors FF, Vectors FGP){
-       double FNetI = FF.getI() + FGP.getI();
-       double FNetJ = FF.getJ() + FGP.getJ();
-       double FNetK = FF.getK() + FGP.getK();
+    public static Vectors calcACC(double mass, Vectors forceNet) {
 
-       Vectors FNet = new Vectors(FNetI, FNetJ, FNetK);
-        System.out.println("FNET:  \n" + FNet);
-       return FNet;
-    }
+        Vectors acceleration = null;
 
-    public static Vectors calcACC(double mass, Vectors FNet){
-        double ACCI = 1/mass * FNet.getI();
-        double ACCJ = 1/mass * FNet.getJ();
-        double ACCK = 1/mass * FNet.getK();
+        acceleration = forceNet.scalarMultiply((1 / mass));
 
-
-        Vectors ACC = new Vectors(ACCI, ACCJ, ACCK);
-
-        System.out.println("ACC: " + ACC);
-        return ACC;
+        return acceleration;
     }
 }

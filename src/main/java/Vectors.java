@@ -1,51 +1,78 @@
 public class Vectors {
 
-    private double i;
-    private double j;
-    private double k;
+    private double x;
+    private double y;
+    private double z;
 
-    public Vectors(double i, double j, double k) {
-        this.i = i;
-        this.j = j;
-        this.k = k;
+    public Vectors(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
-    public Vectors() {
+    public double getX() {
+        return x;
     }
 
-    public double getI() {
-        return i;
+    public double getY() {
+        return y;
     }
 
-    public void setI(double i) {
-        this.i = i;
+    public double getZ() {
+        return z;
     }
 
-    public double getK() {
-        return k;
+    public double getMagnitude() {
+        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2));
     }
 
-    public void setK(double k) {
-        this.k = k;
+    public Vectors subtraction(Vectors v) {
+        double x = this.x - v.getX();
+        double y = this.y - v.getY();
+        double z = this.z - v.getZ();
+
+        return new Vectors(x, y, z);
     }
 
-    public double getJ() {
-        return j;
+    public Vectors addition(Vectors v) {
+        double x = this.x + v.getX();
+        double y = this.y + v.getY();
+        double z = this.z + v.getZ();
+
+        return new Vectors(x, y, z);
     }
 
-    public void setJ(double j) {
-        this.j = j;
+    public Vectors scalarMultiply(double scalar) {
+        double x = this.x * scalar;
+        double y = this.y * scalar;
+        double z = this.z * scalar;
+
+        return new Vectors(x, y, z);
+    }
+
+    public Vectors crossProduct(Vectors v) {
+        double x = (this.y * v.getZ()) - (this.z * v.getY());
+        double y = (this.z * v.getX()) - (this.x * v.getZ());
+        double z = (this.x * v.getY()) - (this.y * v.getX());
+
+        return new Vectors(x, y, z);
+    }
+
+    public double dotProduct(Vectors v) {
+        double x = this.x * v.getX();
+        double y = this.y * v.getY();
+        double z = this.z * v.getZ();
+
+        return x + y + z;
     }
 
 
+        public Vectors hat() {
+        double dot = Math.sqrt(this.dotProduct(this));
 
+        return this.scalarMultiply(1 / dot);
 
-    @Override
-    public String toString() {
-        return "Vectors{" +
-                "i="   + i +
-                ", j=" + j +
-                ", k=" + k +
-                '}';
     }
+
+
 }
