@@ -15,6 +15,7 @@ public class Main {
         double j = kb.nextInt();
         double k = kb.nextInt();
 
+        Vectors objectPosition = new Vectors(0, 0, 0);
 
         //Test Values
         double mStatic = 0.6;
@@ -127,4 +128,20 @@ public class Main {
 
         return acceleration;
     }
+
+    public static void Eulers(Vectors acceleration) {
+        double t = 0;
+        double h = 1 / 60;
+
+        Vectors position = new Vectors(0, 0, 0);
+        Vectors velocity = new Vectors(0, 0, 0);
+
+        while (acceleration.getMagnitude() > 0) {
+            t = t + h;
+            position = position.addition((velocity.scalarMultiply(h)));
+            velocity = velocity.addition(acceleration.scalarMultiply(h));
+        }
+    }
+
+
 }
