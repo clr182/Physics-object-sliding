@@ -1,5 +1,6 @@
 import java.io.*;
 import java.lang.reflect.Array;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -72,6 +73,7 @@ public class Main {
         System.out.println("Acceleration: " + acelerationVectors.toString());
 
         Eulers(acelerationVectors);
+        rK4(acelerationVectors);
     }
 
 
@@ -159,7 +161,7 @@ public class Main {
         Vectors gravity = new Vectors(0, 0, -9.81);
 
 
-        FileWriter fileWriter = new FileWriter("position-velocity.txt");
+        FileWriter fileWriter = new FileWriter("position-velocity-euler.txt");
         PrintWriter printWriter = new PrintWriter(fileWriter);
 
 
@@ -178,5 +180,78 @@ public class Main {
         }
 
         printWriter.close();
+    }
+
+    public static void rK4(Vectors acceleration) throws IOException {
+
+        double fps = 60;
+        double t = 0;
+        double h = 1 / fps;
+        int loop = 0;
+
+        Matrix k1;
+        Matrix k2;
+        Matrix k3;
+        Matrix k4;
+
+        Vectors positionO = new Vectors(0,0,0);
+        Vectors velocityO = new Vectors(0,0,0);
+
+        FileWriter fileWriter = new FileWriter("position-velocity-rk4.txt");
+        PrintWriter printWriter = new PrintWriter(fileWriter);
+
+
+        while (loop < 10) {
+            loop ++;
+            t = t + h;
+            Vectors position;
+            Vectors velocity;
+
+            position = velocityO.scalarMultiply(h);
+            velocity = acceleration.scalarMultiply(h);
+
+            k1 = new Matrix(position, velocity);
+
+            position = positionO.addition(position.scalarMultiply(0.5));
+            velocity = velocityO.addition(velocity.scalarMultiply(0.5));
+
+            position = velocity.scalarMultiply(h);
+            velocity = acceleration.scalarMultiply(h);
+
+            k2= new Matrix(position, velocity);
+
+            position = velocity.scalarMultiply(h);
+            velocity = acceleration.scalarMultiply(h);
+
+            k3 = new Matrix(position, velocity);
+
+            position = positionO.addition(position.scalarMultiply(0.5));
+            velocity = velocityO.addition(velocity.scalarMultiply(0.5));
+
+
+            position = velocity.scalarMultiply(h);
+            velocity = acceleration.scalarMultiply(h);
+
+            k4 = new Matrix(position,velocity);
+
+            Matrix k6 = k1.addMatrix(k2).addMatrix(k3).addMatrix(k4);
+
+            Matrix k = k6.divideMatrix();
+
+            Vectors newPos = k.getPosition();
+            Vectors newVel = k.getVelocity();
+
+            System.out.println("Position " + loop + ": " + newPos.toString());
+            System.out.println("Velocity " + loop + ": " + newVel.toString());
+
+            String fileContent = "Position " + loop + ": " + newPos.toString() + "\n" + "Velocity " + loop + ": " + newVel.toString();
+
+            printWriter.println(fileContent);
+
+        }
+
+        printWriter.close();
+
+
     }
 }
