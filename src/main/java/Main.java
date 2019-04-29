@@ -1,5 +1,4 @@
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.util.Scanner;
 import java.util.Vector;
@@ -72,7 +71,7 @@ public class Main {
 
         System.out.println("Acceleration: " + acelerationVectors.toString());
 
-       Eulers(acelerationVectors);
+        Eulers(acelerationVectors);
     }
 
 
@@ -134,7 +133,7 @@ public class Main {
     }
 
     public static Vectors calcForceNet(Vectors forceFriction, Vectors forceGravityPlane, Vectors forceNormal) {
-        Vectors forceNet = (forceFriction.addition(forceGravityPlane).addition(forceNormal));
+        Vectors forceNet = forceGravityPlane.addition(forceNormal).addition(forceFriction);
 
         return forceNet;
     }
@@ -149,33 +148,35 @@ public class Main {
     }
 
     public static void Eulers(Vectors acceleration) throws IOException {
+
+        double fps = 60;
         double t = 0;
-        double h = 1 / 60;
+        double h = 1 / fps;
         int loop = 0;
 
-        Vectors position = new Vectors(0, 0, 0);
-        Vectors velocity = new Vectors(0, 0, 0);
+        Vectors position = new Vectors(1, 1, 1);
+        Vectors velocity = new Vectors(1, 1, 1);
         Vectors gravity = new Vectors(0, 0, -9.81);
 
-        while (loop < 100) {
+
+        FileWriter fileWriter = new FileWriter("position-velocity.txt");
+        PrintWriter printWriter = new PrintWriter(fileWriter);
+
+
+        while (loop < 10) {
             loop++;
             t = t + h;
             position = position.addition((velocity.scalarMultiply(h)));
             velocity = velocity.addition(acceleration.scalarMultiply(h));
 
-            toFile(loop, position, velocity);
+            System.out.println("Position " + loop + ": " + position.toString());
+            System.out.println("Velocity " + loop + ": " + velocity.toString());
 
+            String fileContent = "Position " + loop + ": " + position.toString() + "\n" + "Velocity " + loop + ": " + velocity.toString();
+
+            printWriter.println(fileContent);
         }
+
+        printWriter.close();
     }
-
-    public static void toFile(int loop, Vectors position, Vectors velocity) throws IOException {
-        String fileContent = "Position" + loop + ": " + position.toString() + "\n" + "Velocity" + loop + ": " + velocity.toString();
-
-
-        FileWriter fileWriter = new FileWriter("position-velocity.txt");
-        fileWriter.write(fileContent);
-        fileWriter.close();
-    }
-
-
 }
