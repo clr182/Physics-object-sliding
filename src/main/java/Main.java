@@ -1,3 +1,5 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Scanner;
 import java.util.Vector;
@@ -6,7 +8,7 @@ public class Main {
 
     public static final double GRAVITY = 9.81;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         Scanner kb = new Scanner(System.in);
         System.out.println("Set i, j, k values");
@@ -15,7 +17,6 @@ public class Main {
         double j = kb.nextInt();
         double k = kb.nextInt();
 
-        Vectors objectPosition = new Vectors(0, 0, 0);
 
         //Test Values
         double mStatic = 0.6;
@@ -31,29 +32,47 @@ public class Main {
         //step 1
         Vectors forceGravity = calcForceGravity(mass);
 
+        System.out.println("Force Gravity: " + forceGravity.toString());
+
         //step 2
         Vectors forceGravityNormal = calcForceGravityNormal(forceGravity, normalHat);
 
+        System.out.println("Force Gravity Normal: " + forceGravityNormal.toString());
+
         //step 3
         Vectors forceGravityPlane = calcForceGravityPlane(forceGravity, forceGravityNormal);
+
+        System.out.println("Force Gravity Plane: " + forceGravityPlane.toString());
 
         double forceGravityPlaneMag = forceGravityPlane.getMagnitude();
 
         Vectors dHat = forceGravityPlane.hat();
 
+        System.out.println("D Hat: " + dHat.toString());
+
         //step 4
         Vectors forceNormal = calcForceNormal(forceGravityPlane);
+
+        System.out.println("Force Normal: " + forceNormal.toString());
 
         double forceNormalMag = forceNormal.getMagnitude();
 
         //step 5
         Vectors forceFriction = calcForceFriction(mStatic, mKinetic, forceNormalMag, forceGravityPlaneMag, dHat);
 
+        System.out.println("Force Friction: " + forceFriction.toString());
+
         //step 6
         Vectors forceNet = calcForceNet(forceFriction, forceGravityPlane, forceNormal);
 
+        System.out.println("Net Force: " + forceNet.toString());
+
         //step 7
         Vectors acelerationVectors = calcACC(mass, forceNet);
+
+        System.out.println("Acceleration: " + acelerationVectors.toString());
+
+       Eulers(acelerationVectors);
     }
 
 
@@ -63,7 +82,7 @@ public class Main {
 
         double massGravity = mass * GRAVITY;
 
-        return kHat.scalarMultiply(massGravity);
+        return kHat.scalarMultiply(-massGravity);
 
     }
 
@@ -73,7 +92,7 @@ public class Main {
 
         double forceGravityDotNHat = forceGravity.dotProduct(normalHat);
 
-        return forceGravityNormal.scalarMultiply(forceGravityDotNHat);
+        return normalHat.scalarMultiply(forceGravityDotNHat);
 
     }
 
@@ -129,18 +148,33 @@ public class Main {
         return acceleration;
     }
 
-    public static void Eulers(Vectors acceleration) {
+    public static void Eulers(Vectors acceleration) throws IOException {
         double t = 0;
         double h = 1 / 60;
+        int loop = 0;
 
         Vectors position = new Vectors(0, 0, 0);
         Vectors velocity = new Vectors(0, 0, 0);
+        Vectors gravity = new Vectors(0, 0, -9.81);
 
-        while (acceleration.getMagnitude() > 0) {
+        while (loop < 100) {
+            loop++;
             t = t + h;
             position = position.addition((velocity.scalarMultiply(h)));
             velocity = velocity.addition(acceleration.scalarMultiply(h));
+
+            toFile(loop, position, velocity);
+
         }
+    }
+
+    public static void toFile(int loop, Vectors position, Vectors velocity) throws IOException {
+        String fileContent = "Position" + loop + ": " + position.toString() + "\n" + "Velocity" + loop + ": " + velocity.toString();
+
+
+        FileWriter fileWriter = new FileWriter("position-velocity.txt");
+        fileWriter.write(fileContent);
+        fileWriter.close();
     }
 
 

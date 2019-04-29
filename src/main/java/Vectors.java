@@ -74,5 +74,12 @@ public class Vectors {
 
     }
 
-
+    @Override
+    public String toString() {
+        return "[" +
+                 x + "\n" +
+                 y + "\n" +
+                 z + "\n" +
+                ']';
+    }
 }
